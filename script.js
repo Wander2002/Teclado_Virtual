@@ -10,59 +10,72 @@ const firebaseConfig = {
 };
 
 function getSenhaFromDatabase() {
-    // Simulação de uma consulta ao banco de dados
-    return '1234'; // Supondo que a senha seja '1234'
-  }
-  
-  function generateUniqueNumbers() {
-    const numbers = [];
-    const usedNumbers = new Set();
-    for (let i = 0; i < 5; i++) {
-      let combination = [];
-      while (combination.length < 2) {
-        let number = Math.floor(Math.random() * 10);
-        if (!usedNumbers.has(number)) {
-          combination.push(number);
-          usedNumbers.add(number);
-        }
+  // Simulação de uma consulta ao banco de dados
+  return '1234'; // Supondo que a senha seja '1234'
+}
+
+function generateUniqueNumbers() {
+  const numbers = [];
+  const usedNumbers = new Set();
+  for (let i = 0; i < 5; i++) {
+    let combination = [];
+    while (combination.length < 2) {
+      let number = Math.floor(Math.random() * 10);
+      if (!usedNumbers.has(number)) {
+        combination.push(number);
+        usedNumbers.add(number);
       }
-      numbers.push(combination);
     }
-    return numbers;
+    numbers.push(combination);
   }
-  
-  function generateNewCombinations() {
-    const display = document.getElementById('display');
-    const buttons = document.querySelectorAll('.key');
-    const numbers = generateUniqueNumbers();
-    const senha = getSenhaFromDatabase();
-  
-    buttons.forEach((button, index) => {
-      const combination = numbers[index].join(' ou ');
-      button.textContent = combination;
-      button.addEventListener('click', () => {
-        if (numbers[index].includes(Number(senha.charAt(0))) ||
-            numbers[index].includes(Number(senha.charAt(1))) ||
-            numbers[index].includes(Number(senha.charAt(2))) ||
-            numbers[index].includes(Number(senha.charAt(3)))) {
-          display.textContent += senha + ' ';
-        } else {
-          display.textContent += combination + ' ';
+  return numbers;
+}
+
+function generateNewCombinations() {
+  const display = document.getElementById('display');
+  const buttons = document.querySelectorAll('.key');
+  const numbers = generateUniqueNumbers();
+  const senha = getSenhaFromDatabase();
+
+  buttons.forEach((button, index) => {
+    const combination = numbers[index].map(num => num.toString()).join(' ');
+    button.textContent = combination;
+    button.addEventListener('click', () => {
+      display.textContent += combination + ' ';
+    });
+  });
+
+  const clearButton = document.getElementById('clearButton');
+  clearButton.addEventListener('click', () => {
+    display.textContent = '';
+  });
+
+  const okButton = document.getElementById('okButton');
+  okButton.addEventListener('click', () => {
+    const senhaDigitada = display.textContent.trim().split(' ');
+    let senhaValida = false;
+    numbers.forEach(combination => {
+      let match = true;
+      combination.forEach(num => {
+        if (!senhaDigitada.includes(num.toString())) {
+          match = false;
         }
       });
+      if (match) {
+        senhaValida = true;
+      }
     });
-  
-    const clearButton = document.getElementById('clearButton');
-    clearButton.addEventListener('click', () => {
-      display.textContent = '';
-    });
-  
-    const okButton = document.getElementById('okButton');
-    okButton.addEventListener('click', () => {
-      // Adicione a lógica de validação da senha aqui
-      console.log('Senha válida:', display.textContent.trim());
-    });
-  }
-  
-  window.addEventListener('load', generateNewCombinations);
-  
+
+    if (senhaDigitada.length === 4 && senhaDigitada.every((value, index) => value === senha.charAt(index))) {
+      console.log('Autenticação efetuada com sucesso');
+      display.textContent = 'Autenticação efetuada com sucesso';
+    } else {
+      console.log('Senha incorreta');
+      console.log(senhaDigitada);
+      console.log(senhaValida);
+      display.textContent = 'Senha incorreta';
+    }
+  });
+}
+
+window.addEventListener('load', generateNewCombinations);
