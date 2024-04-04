@@ -36,45 +36,37 @@ function generateNewCombinations() {
   const buttons = document.querySelectorAll('.key');
   const numbers = generateUniqueNumbers();
   const senha = getSenhaFromDatabase();
+  let currentButtonIndex = 0; // Índice do botão atual a ser validado
+  let senhaValida = true; // Define se a senha está correta ou não
 
   buttons.forEach((button, index) => {
     const combination = numbers[index].map(num => num.toString()).join(' ');
     button.textContent = combination;
     button.addEventListener('click', () => {
-      display.textContent += combination + ' ';
+      const numeroSenha = parseInt(senha[currentButtonIndex]);
+      if (parseInt(combination.split(' ')[0]) === numeroSenha) {
+        // Número do botão válido para a senha
+        display.textContent += combination + ' ';
+        currentButtonIndex++;
+        if (currentButtonIndex === senha.length) {
+          // Senha digitada corretamente
+          console.log('Autenticação efetuada com sucesso');
+          display.textContent = 'Autenticação efetuada com sucesso';
+          currentButtonIndex = 0; // Reinicia a validação da senha
+        }
+      } else {
+        // Número do botão inválido para a senha
+        console.log('Senha incorreta');
+        display.textContent = 'Senha incorreta';
+        currentButtonIndex = 0; // Reinicia a validação da senha
+      }
     });
   });
 
   const clearButton = document.getElementById('clearButton');
   clearButton.addEventListener('click', () => {
     display.textContent = '';
-  });
-
-  const okButton = document.getElementById('okButton');
-  okButton.addEventListener('click', () => {
-    const senhaDigitada = display.textContent.trim().split(' ');
-    let senhaValida = false;
-    numbers.forEach(combination => {
-      let match = true;
-      combination.forEach(num => {
-        if (!senhaDigitada.includes(num.toString())) {
-          match = false;
-        }
-      });
-      if (match) {
-        senhaValida = true;
-      }
-    });
-
-    if (senhaDigitada.length === 4 && senhaDigitada.every((value, index) => value === senha.charAt(index))) {
-      console.log('Autenticação efetuada com sucesso');
-      display.textContent = 'Autenticação efetuada com sucesso';
-    } else {
-      console.log('Senha incorreta');
-      console.log(senhaDigitada);
-      console.log(senhaValida);
-      display.textContent = 'Senha incorreta';
-    }
+    currentButtonIndex = 0; // Reinicia a validação da senha
   });
 }
 
