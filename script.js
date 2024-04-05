@@ -1,3 +1,114 @@
+class PasswordValidator {
+  constructor(expectedPassword = [1, 2, 3, 4, 5]) {
+    this.expectedPassword = expectedPassword;
+    this.selectedButtons = [];
+    this.display = document.getElementById("display");
+    this.errorMessage = document.getElementById("error-message");
+    this.loginForm = document.getElementById("login-form");
+    this.passwordField = document.getElementById("password");
+    this.createButtons();
+    this.attachEventListeners();
+  }
+
+  attachEventListeners() {
+    document.querySelectorAll(".key").forEach((key) => {
+      key.addEventListener("click", () => {
+        const value = key.getAttribute("data-value").split("").map(Number);
+        this.selectedButtons.push(value);
+        this.updateDisplay("*");
+
+        if (this.selectedButtons.length > 4) {
+          this.toggleButton(false);
+        } else {
+          this.toggleButton(true);
+        }
+      });
+    });
+
+    this.loginForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const isValid = this.validatePassword(this.selectedButtons);
+      if (isValid) {
+        this.errorMessage.textContent = "Senha Correta!";
+      } else {
+        this.errorMessage.textContent = "Senha incorreta. Tente novamente!";
+      }
+      this.passwordField.value = "";
+      this.selectedButtons = [];
+      this.clearDisplay();
+      this.toggleButton(true);
+    });
+  }
+
+  validatePassword(pairsArray) {
+    let isValid = true;
+    for (const digit of this.expectedPassword) {
+      const index = this.expectedPassword.indexOf(digit);
+      if (index !== -1 && pairsArray[index]) {
+        if (!pairsArray[index].includes(digit)) {
+          isValid = false;
+          break;
+        }
+      } else {
+        isValid = false;
+        break;
+      }
+    }
+    return isValid;
+  }
+
+  updateDisplay(value) {
+    this.display.textContent += value;
+  }
+
+  clearDisplay() {
+    this.display.textContent = "";
+  }
+
+  createButtons() {
+    let pairsArray = this.createNumberPairsArray();
+    const keypad = document.getElementById("keypad");
+    for (const pairArray of pairsArray) {
+      const button = document.createElement("button");
+      button.classList.add("key");
+      button.setAttribute("data-value", pairArray.join(""));
+      button.textContent = `${pairArray[0]} ou ${pairArray[1]}`;
+      keypad.appendChild(button);
+    }
+  }
+
+  shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  createNumberPairsArray() {
+    let numbers = [...Array(10).keys()];
+    this.shuffle(numbers);
+    let pairsArray = [];
+    for (let i = 0; i < 5; i++) {
+      let pair = [numbers[i], numbers[i + 5]];
+      pairsArray.push(pair);
+    }
+    return pairsArray;
+  }
+  toggleButton(status) {
+    const submit = document.getElementById("submit");
+    if (status) {
+      submit.disabled = true;
+      return;
+    }
+    submit.disabled = false;
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  new PasswordValidator([1, 2, 3, 4, 9]);
+});
+
 const firebaseConfig = {
   apiKey: "AIzaSyAz3bx4u7yQc4enSoYUo7UFHC6etGwr8Yg",
   authDomain: "teclado-virtual-d446e.firebaseapp.com",
@@ -8,66 +119,3 @@ const firebaseConfig = {
   appId: "1:925020548911:web:5daa46ddfe44f910a1bbda",
   measurementId: "G-VE3STW0MZY"
 };
-
-function getSenhaFromDatabase() {
-  // Simulação de uma consulta ao banco de dados
-  return '1234'; // Supondo que a senha seja '1234'
-}
-
-function generateUniqueNumbers() {
-  const numbers = [];
-  const usedNumbers = new Set();
-  for (let i = 0; i < 5; i++) {
-    let combination = [];
-    while (combination.length < 2) {
-      let number = Math.floor(Math.random() * 10);
-      if (!usedNumbers.has(number)) {
-        combination.push(number);
-        usedNumbers.add(number);
-      }
-    }
-    numbers.push(combination);
-  }
-  return numbers;
-}
-
-function generateNewCombinations() {
-  const display = document.getElementById('display');
-  const buttons = document.querySelectorAll('.key');
-  const numbers = generateUniqueNumbers();
-  const senha = getSenhaFromDatabase();
-  let currentButtonIndex = 0; // Índice do botão atual a ser validado
-  let senhaValida = true; // Define se a senha está correta ou não
-
-  buttons.forEach((button, index) => {
-    const combination = numbers[index].map(num => num.toString()).join(' ');
-    button.textContent = combination;
-    button.addEventListener('click', () => {
-      const numeroSenha = parseInt(senha[currentButtonIndex]);
-      if (parseInt(combination.split(' ')[0]) === numeroSenha) {
-        // Número do botão válido para a senha
-        display.textContent += combination + ' ';
-        currentButtonIndex++;
-        if (currentButtonIndex === senha.length) {
-          // Senha digitada corretamente
-          console.log('Autenticação efetuada com sucesso');
-          display.textContent = 'Autenticação efetuada com sucesso';
-          currentButtonIndex = 0; // Reinicia a validação da senha
-        }
-      } else {
-        // Número do botão inválido para a senha
-        console.log('Senha incorreta');
-        display.textContent = 'Senha incorreta';
-        currentButtonIndex = 0; // Reinicia a validação da senha
-      }
-    });
-  });
-
-  const clearButton = document.getElementById('clearButton');
-  clearButton.addEventListener('click', () => {
-    display.textContent = '';
-    currentButtonIndex = 0; // Reinicia a validação da senha
-  });
-}
-
-window.addEventListener('load', generateNewCombinations);
